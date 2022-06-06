@@ -32,7 +32,9 @@ tested on python3, and linux
 
 # installation
 
-    phyton3 -m pip install tempr
+not yet released!
+
+    phyton3 -m pip install tempres
     
 
 # license
