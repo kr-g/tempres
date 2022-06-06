@@ -46,6 +46,15 @@ def main_func():
     )
 
     parser.add_argument(
+        "-proto",
+        type=str,
+        dest="host_proto",
+        action="store",
+        metavar="IP",
+        help="protocol to use (default: %(default)s)",
+        default="http",
+    )
+    parser.add_argument(
         "-host",
         "-ip",
         type=str,
@@ -100,7 +109,7 @@ def main_func():
 
 
 def fetch(args):
-    url = f"http://{args.host_ip}:{args.host_port}{args.host_url}"
+    url = f"{args.host_proto}://{args.host_ip}:{args.host_port}{args.host_url}"
     print("loading from", url)
     resp = request.urlopen(url)
 
