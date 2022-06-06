@@ -87,6 +87,7 @@ def main_func():
         "-nostore",
         "-no-store",
         "-stdout",
+        "-",
         dest="no_store",
         action="store_true",
         help="output to stdout",
