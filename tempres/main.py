@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import json
 import argparse
@@ -8,15 +9,16 @@ from urllib import request
 
 from tempres import VERSION
 
+debug = False
+
 
 def main_func():
 
-    trace = False
-    debug = False
+    global debug
 
     parser = argparse.ArgumentParser(
         prog="tempres",
-        usage="python3 -m %(prog)s [DEVICE-PARAMETER] [options]",
+        usage="python3 -m %(prog)s [options]",
         description="collect temperature and pressure data",
     )
     parser.add_argument(
@@ -27,15 +29,6 @@ def main_func():
         help="show version info and exit",
         default=False,
     )
-
-    parser.add_argument(
-        "-trace",
-        "-t",
-        dest="trace",
-        action="store_true",
-        help="display trace info (default: %(default)s)",
-        default=trace,
-    )
     parser.add_argument(
         "-debug",
         "-d",
@@ -44,13 +37,12 @@ def main_func():
         help="display debug info (default: %(default)s)",
         default=debug,
     )
-
     parser.add_argument(
         "-proto",
         type=str,
         dest="host_proto",
         action="store",
-        metavar="IP",
+        metavar="HTTP/S",
         help="protocol to use (default: %(default)s)",
         default="http",
     )
@@ -82,6 +74,24 @@ def main_func():
         help="url to use (default: %(default)s)",
         default="/tempr/measure",
     )
+    parser.add_argument(
+        "-dest",
+        type=str,
+        dest="dest_dir",
+        action="store",
+        metavar="DIR",
+        help="destination folder (default: %(default)s)",
+        default="~/.tempres/inq",
+    )
+    parser.add_argument(
+        "-nostore",
+        "-no-store",
+        "-stdout",
+        dest="no_store",
+        action="store_true",
+        help="output to stdout",
+        default=False,
+    )
 
     global args
     args = parser.parse_args()
@@ -90,7 +100,6 @@ def main_func():
         print("arguments", args)
 
     debug = args.debug
-    trace = args.trace
 
     if args.show_version:
         print("Version:", VERSION)
@@ -98,30 +107,50 @@ def main_func():
 
     data = fetch(args)
 
+    if "err" in data:
+        print("error", data)
+        sys.exit(1)
+
     tm = data["time"]
     d = date(*tm[0:3])
     t = time(*tm[3:])
     dt = datetime.combine(d, t)
 
+    data["time_ux"] = dt.timestamp()
+
     fnam = f"tempres-{dt.year:04}{dt.month:02}{dt.day:02}-{dt.hour:02}{dt.minute:02}{dt.second:02}.json"
 
-    print("writing to", fnam)
+    dest_dir = os.path.expanduser(args.dest_dir)
+    dest_dir = os.path.expandvars(dest_dir)
+
+    os.makedirs(dest_dir, exist_ok=True)
+
+    dest_fnam = os.path.join(dest_dir, fnam)
+
+    if args.no_store:
+        print(data)
+    else:
+        outs = json.dumps(data, indent=4)
+        debug and print("writing to", dest_fnam, outs)
+        with open(dest_fnam, "w") as f:
+            f.write(outs)
 
 
 def fetch(args):
     url = f"{args.host_proto}://{args.host_ip}:{args.host_port}{args.host_url}"
-    print("loading from", url)
+
+    debug and print("loading from", url)
     resp = request.urlopen(url)
 
-    print("status", resp.status)
+    debug and print("status", resp.status)
 
     headers = resp.getheaders()
-    print("headers", headers)
+    debug and print("headers", headers)
 
     data = resp.read().decode()
-    print("data", data)
+    debug and print("data", data)
 
     data = json.loads(data)
-    print("parsed data", data)
+    debug and print("parsed data", data)
 
     return data
