@@ -30,6 +30,11 @@ todo - documentation pending
 tested on python3, and linux
 
 
+# development status
+
+alpha state, use on your own risk!
+
+
 # installation
 
 not yet released!
