@@ -13,7 +13,7 @@ from sqlalchemy import Boolean
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-
+from sqlalchemy import delete
 
 DEFAULT_PATH = "~/.tempres/"
 DEFAULT_PATH_INQ = os.path.join(DEFAULT_PATH, "inq")
@@ -191,6 +191,17 @@ def qry_count_all(engine, tag=None, exclude_tag=False):
         return qry.count()
 
 
+def delete_id(engine, id):
+    with Session(engine) as session:
+        session.execute(delete(TempRec).where(TempRec.id.is_(id)))
+        session.commit()
+
+
+def delete_all(engine, iter_id):
+    for id in iter_id:
+        delete_id(engine, id)
+
+
 db_path = get_db_path()
 
 print("db exists", os.path.exists(db_path))
@@ -222,9 +233,13 @@ for fe in glob.iglob(pat, recursive=True):
             inserted = inserted + 1
 
 found = 0
+recs = []
 for dbrec in qry_all(engine, tag=tag, exclude_tag=False, full=False):
     print(dbrec)
+    recs.append(dbrec[0])
     found = found + 1
+
+# delete_all(engine,recs)
 
 print("skip_existing", skip_existing)
 print("inserted", inserted)
