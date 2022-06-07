@@ -144,11 +144,11 @@ def get_date(data):
     return year, month, day, hour, minute, second
 
 
-def build_date_qry(session, data, tag=None, exclude_tag=False):
+def build_date_qry(session, data, tag=None, exclude_tag=False, full=False):
     tag = strip_tag(tag)
     year, month, day, hour, minute, second = get_date(data)
     qry = (
-        session.query(TempRec)
+        (session.query(TempRec) if full else session.query(TempRec.id))
         .where(TempRec.year.is_(year))
         .where(TempRec.month.is_(month))
         .where(TempRec.day.is_(day))
@@ -162,22 +162,30 @@ def build_date_qry(session, data, tag=None, exclude_tag=False):
     return qry
 
 
-def qry_date(engine, data, tag=None, exclude_tag=False):
+def qry_date(engine, data, tag=None, exclude_tag=False, full=False):
     with Session(engine) as session:
-        qry = build_date_qry(session, data, tag, exclude_tag)
+        qry = build_date_qry(session, data, tag, exclude_tag, full)
+        return qry.all()
+
+
+def qry_all(engine, tag=None, exclude_tag=False, full=False):
+    with Session(engine) as session:
+        qry = session.query(TempRec) if full else session.query(TempRec.id)
+        if not exclude_tag:
+            qry = qry.where(TempRec.tag.is_(tag))
         return qry.all()
 
 
 def qry_count_date(engine, data, tag=None, exclude_tag=False):
     with Session(engine) as session:
-        qry = build_date_qry(session, data, tag, exclude_tag)
+        qry = build_date_qry(session, data, tag, exclude_tag, False)
         return qry.count()
 
 
 def qry_count_all(engine, tag=None, exclude_tag=False):
     tag = strip_tag(tag)
     with Session(engine) as session:
-        qry = session.query(TempRec)
+        qry = session.query(TempRec.id)
         if not exclude_tag:
             qry = qry.where(TempRec.tag.is_(tag))
         return qry.count()
@@ -213,9 +221,14 @@ for fe in glob.iglob(pat, recursive=True):
             insert_rec(engine, data, tag=tag)
             inserted = inserted + 1
 
+found = 0
+for dbrec in qry_all(engine, tag=tag, exclude_tag=False, full=False):
+    print(dbrec)
+    found = found + 1
 
 print("skip_existing", skip_existing)
 print("inserted", inserted)
 
+print("found", found)
 print("all tag", tag, qry_count_all(engine, tag=tag, exclude_tag=False))
 print("all", qry_count_all(engine, tag=tag, exclude_tag=True))
