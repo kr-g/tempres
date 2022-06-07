@@ -18,6 +18,7 @@ refer to [issues](https://github.com/kr-g/tempres/issues)
 # LIMITATIONS
 
 - only sqlite supported as db backend at the moment
+- dont delete raw json data, keep it as a base for future db imports
 - 
  
 
