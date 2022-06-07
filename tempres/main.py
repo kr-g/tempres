@@ -4,6 +4,7 @@ import time
 import json
 import argparse
 from datetime import datetime, date
+from datetime import time as dt_time
 
 from urllib import request
 
@@ -88,7 +89,7 @@ def main_func():
         "-flat",
         dest="flat_store",
         action="store_true",
-        help="use a flat directory structure in the destination folder instead grouped like YYYY/YYYYMMDD/...",
+        help="use a flat directory structure in the destination folder instead grouped like YYYY/MM/YYYYMMDD/...",
         default=False,
     )
     parser.add_argument(
@@ -122,7 +123,7 @@ def main_func():
 
     tm = data["time"]
     d = date(*tm[0:3])
-    t = time(*tm[3:])
+    t = dt_time(*tm[3:])
     dt = datetime.combine(d, t)
 
     data["time_ux"] = dt.timestamp()
@@ -134,7 +135,8 @@ def main_func():
 
     if not args.flat_store:
         dest_dir = os.path.join(
-            dest_dir, f"{dt.year:04}{os.sep}{dt.year:04}{dt.month:02}{dt.day:02}"
+            dest_dir,
+            f"{dt.year:04}{os.sep}{dt.month:02}{os.sep}{dt.year:04}{dt.month:02}{dt.day:02}",
         )
 
     if not args.no_store:
