@@ -240,19 +240,22 @@ for fe in glob.iglob(pat, recursive=True):
             insert_rec(engine, data, tag=tag)
             inserted = inserted + 1
 
-found = 0
-recs = []
-for dbrec in qry_all(engine, tag=tag, exclude_tag=False, full=False):
-    print(dbrec)
-    recs.append(dbrec[0])
-    found = found + 1
+
+def dump_all():
+    found = 0
+    recs = []
+    for dbrec in qry_all(engine, tag=tag, exclude_tag=False, full=False):
+        print(dbrec)
+        recs.append(dbrec[0])
+        found = found + 1
+    print("found", found)
+
 
 # delete_all(engine,recs)
 
 print("skip_existing", skip_existing)
 print("inserted", inserted)
 
-print("found", found)
 print("all tag", tag, qry_count_all(engine, tag=tag, exclude_tag=False))
 print("all", qry_count_all(engine, tag=tag, exclude_tag=True))
 
