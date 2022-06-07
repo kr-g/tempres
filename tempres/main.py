@@ -84,6 +84,14 @@ def main_func():
         default="~/.tempres/inq",
     )
     parser.add_argument(
+        "-flat-dir",
+        "-flat",
+        dest="flat_store",
+        action="store_true",
+        help="use a flat directory structure in the destination folder instead grouped like YYYY/YYYYMMDD/...",
+        default=False,
+    )
+    parser.add_argument(
         "-nostore",
         "-no-store",
         "-stdout",
@@ -124,9 +132,17 @@ def main_func():
     dest_dir = os.path.expanduser(args.dest_dir)
     dest_dir = os.path.expandvars(dest_dir)
 
-    os.makedirs(dest_dir, exist_ok=True)
+    if not args.flat_store:
+        dest_dir = os.path.join(
+            dest_dir, f"{dt.year:04}{os.sep}{dt.year:04}{dt.month:02}{dt.day:02}"
+        )
+
+    if not args.no_store:
+        debug and print("create dest folder", dest_dir)
+        os.makedirs(dest_dir, exist_ok=True)
 
     dest_fnam = os.path.join(dest_dir, fnam)
+    debug and print("dest file", dest_fnam)
 
     if args.no_store:
         print(data)
