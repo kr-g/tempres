@@ -3,7 +3,7 @@ import sys
 import time
 import json
 import argparse
-from datetime import datetime, date, time
+from datetime import datetime, date
 
 from urllib import request
 
@@ -71,7 +71,7 @@ def main_func():
         dest="host_url",
         action="store",
         metavar="URL",
-        help="url to use (default: %(default)s)",
+        help="url to use (default: %(default)s). use '/tempr/pop' to read from internal storage instead of instant measure.",
         default="/tempr/measure",
     )
     parser.add_argument(

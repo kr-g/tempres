@@ -1,4 +1,3 @@
-from tempres import VERSION
 from tempres.main import main_func
 
 
