@@ -48,6 +48,8 @@ class TempRec(Base):
     minute = Column(Integer, nullable=False)
     second = Column(Integer, nullable=False)
 
+    hour_minute_second = Column(String(6), nullable=False)
+
     is_utc = Column(Boolean, default=True)
     time_stamp = Column(Float, nullable=False)
 
@@ -128,6 +130,7 @@ def insert_rec(engine, data, tag=None):
             year_month_day=f"{_time[0]:04}{_time[1]:02}{_time[2]:02}",
             year_month=f"{_time[0]:04}{_time[1]:02}",
             month_day=f"{_time[1]:02}{_time[2]:02}",
+            hour_minute_second=f"{_time[3]:02}{_time[4]:02}{_time[5]:02}",
             hour=_time[3],
             minute=_time[4],
             second=_time[5],
