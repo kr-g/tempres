@@ -18,8 +18,6 @@ from sqlalchemy import delete
 DEFAULT_PATH = "~/.tempres/"
 DEFAULT_PATH_INQ = os.path.join(DEFAULT_PATH, "inq")
 
-Base = declarative_base()
-
 
 def create_id():
     return uuid.uuid4().hex
@@ -27,6 +25,8 @@ def create_id():
 
 _a_id = create_id()
 LEN_ID = len(_a_id)
+
+Base = declarative_base()
 
 
 class TempRec(Base):
@@ -83,12 +83,20 @@ def get_db_path(path=None):
     return db_path
 
 
-def open_db(db_path):
+def get_db_spec(db_path):
     db_path = "sqlite://" + os.sep + db_path
     print("db_path", db_path)
-    engine = create_engine(db_path, echo=False)
-    meta = Base.metadata.create_all(engine)
+    return db_path
+
+
+def open_db(db_spec):
+    engine = create_engine(db_spec, echo=False)
     return engine
+
+
+def create_db_meta(engine):
+    meta = Base.metadata.create_all(engine)
+    return meta
 
 
 def strip_tag(tag):
@@ -203,11 +211,11 @@ def delete_all(engine, iter_id):
 
 
 db_path = get_db_path()
-
 print("db exists", os.path.exists(db_path))
 
-engine = open_db(db_path)
-
+db_spec = get_db_spec(db_path)
+engine = open_db(db_spec)
+create_db_meta(engine)
 
 pat = os.path.join(DEFAULT_PATH_INQ, "**", "tempres-*.json")
 pat = os.path.expanduser(pat)
@@ -247,3 +255,5 @@ print("inserted", inserted)
 print("found", found)
 print("all tag", tag, qry_count_all(engine, tag=tag, exclude_tag=False))
 print("all", qry_count_all(engine, tag=tag, exclude_tag=True))
+
+# dialect+driver://username:password@host:port/database
