@@ -42,6 +42,7 @@ setuptools.setup(
     keywords="micropython esp32 esp8266 modcore home-automation",
     install_requires=[
         "pyjsoncfg",
+        "SQLAlchemy",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
