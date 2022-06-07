@@ -3,10 +3,7 @@ import glob
 import json
 import uuid
 
-DEFAULT_PATH = "~/.tempres/inq"
-
 from sqlalchemy import Column
-from sqlalchemy import ForeignKey
 
 from sqlalchemy import Integer
 from sqlalchemy import String
@@ -14,11 +11,12 @@ from sqlalchemy import Float
 from sqlalchemy import Boolean
 
 from sqlalchemy import create_engine
-
+from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import relationship
+
+DEFAULT_PATH = "~/.tempres/inq"
 
 Base = declarative_base()
 
@@ -78,9 +76,6 @@ echo = not True
 engine = create_engine("sqlite://", echo=echo, future=True)
 
 meta = Base.metadata.create_all(engine)
-
-
-from sqlalchemy.orm import Session
 
 
 pat = os.path.join(DEFAULT_PATH, "**", "tempres-*.json")
