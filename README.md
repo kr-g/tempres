@@ -37,8 +37,6 @@ alpha state, use on your own risk!
 
 # installation
 
-not yet released!
-
     phyton3 -m pip install tempres
     
 
