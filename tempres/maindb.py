@@ -257,3 +257,7 @@ print("all tag", tag, qry_count_all(engine, tag=tag, exclude_tag=False))
 print("all", qry_count_all(engine, tag=tag, exclude_tag=True))
 
 # dialect+driver://username:password@host:port/database
+
+
+def main_func():
+    pass

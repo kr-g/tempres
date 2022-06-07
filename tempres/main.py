@@ -115,6 +115,10 @@ def main_func():
         print("Version:", VERSION)
         return
 
+    if args.host_ip is None:
+        print("error", "no host specified")
+        sys.exit(1)
+
     data = fetch(args)
 
     if "err" in data:
