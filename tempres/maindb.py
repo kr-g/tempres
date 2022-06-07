@@ -34,7 +34,7 @@ class TempRec(Base):
 
     id = Column(String(LEN_ID), primary_key=True)
 
-    tag = Column(String(LEN_ID < 1), nullable=True)
+    tag = Column(String(LEN_ID << 1), nullable=True)
 
     year = Column(Integer, nullable=False)
     month = Column(Integer, nullable=False)
