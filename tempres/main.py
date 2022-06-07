@@ -8,7 +8,7 @@ from datetime import time as dt_time
 
 from urllib import request
 
-from tempres import VERSION
+from tempres import VERSION, DEFAULT_PATH
 
 debug = False
 
@@ -82,7 +82,7 @@ def main_func():
         action="store",
         metavar="DIR",
         help="destination folder (default: %(default)s)",
-        default="~/.tempres/inq",
+        default=DEFAULT_PATH,
     )
     parser.add_argument(
         "-flat-dir",
