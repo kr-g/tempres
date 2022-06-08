@@ -1,9 +1,6 @@
 ---
 
-Copyright (c) 2021 k.r. goger - https://github.com/kr-g
-
-project homepage:
-https://github.com/kr-g/tempres
+Copyright (c) 2022 k. goger - https://github.com/kr-g
 
 ---
 
@@ -674,4 +671,6 @@ For more information on this, and how to apply and follow the GNU AGPL, see
 <http://www.gnu.org/licenses/>.
 
 https://www.gnu.org/licenses/agpl-3.0.de.html
+
+
 
