@@ -1,4 +1,8 @@
 
+see [`BACKLOG`](https://github.com/kr-g/tempres/blob/main/BACKLOG.md)
+for open development tasks and limitations.
+
+
 # Changelog
 
 ## next version v0.0.2 - ???
