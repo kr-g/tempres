@@ -29,6 +29,10 @@ LEN_ID = len(_a_id)
 Base = declarative_base()
 
 
+# todo add migration scripts
+VER = 2
+
+
 class TempRec(Base):
     __tablename__ = "temp_rec"
 
@@ -48,7 +52,8 @@ class TempRec(Base):
     minute = Column(Integer, nullable=False)
     second = Column(Integer, nullable=False)
 
-    hour_minute_second = Column(String(6), nullable=False)
+    if VER > 1:
+        hour_minute_second = Column(String(6), nullable=False)
 
     is_utc = Column(Boolean, default=True)
     time_stamp = Column(Float, nullable=False)
@@ -121,24 +126,44 @@ def insert_rec(engine, data, tag=None):
     _time_stamp = float(data["time_ux"])
 
     with Session(engine) as session:
-        db_rec = TempRec(
-            id=create_id(),
-            tag=tag,
-            year=_time[0],
-            month=_time[1],
-            day=_time[2],
-            year_month_day=f"{_time[0]:04}{_time[1]:02}{_time[2]:02}",
-            year_month=f"{_time[0]:04}{_time[1]:02}",
-            month_day=f"{_time[1]:02}{_time[2]:02}",
-            hour_minute_second=f"{_time[3]:02}{_time[4]:02}{_time[5]:02}",
-            hour=_time[3],
-            minute=_time[4],
-            second=_time[5],
-            is_utc=_utc,
-            time_stamp=_time_stamp,
-            temperature=_temperature,
-            pressure=_pressure,
-        )
+        if VER > 1:
+            db_rec = TempRec(
+                id=create_id(),
+                tag=tag,
+                year=_time[0],
+                month=_time[1],
+                day=_time[2],
+                year_month_day=f"{_time[0]:04}{_time[1]:02}{_time[2]:02}",
+                year_month=f"{_time[0]:04}{_time[1]:02}",
+                month_day=f"{_time[1]:02}{_time[2]:02}",
+                hour_minute_second=f"{_time[3]:02}{_time[4]:02}{_time[5]:02}",
+                hour=_time[3],
+                minute=_time[4],
+                second=_time[5],
+                is_utc=_utc,
+                time_stamp=_time_stamp,
+                temperature=_temperature,
+                pressure=_pressure,
+            )
+        else:
+            db_rec = TempRec(
+                id=create_id(),
+                tag=tag,
+                year=_time[0],
+                month=_time[1],
+                day=_time[2],
+                year_month_day=f"{_time[0]:04}{_time[1]:02}{_time[2]:02}",
+                year_month=f"{_time[0]:04}{_time[1]:02}",
+                month_day=f"{_time[1]:02}{_time[2]:02}",
+                hour=_time[3],
+                minute=_time[4],
+                second=_time[5],
+                is_utc=_utc,
+                time_stamp=_time_stamp,
+                temperature=_temperature,
+                pressure=_pressure,
+            )
+
         session.add(db_rec)
         session.commit()
 
