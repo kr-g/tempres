@@ -32,6 +32,7 @@ def main_func():
     yp = list(map(lambda y: y.pressure, recs))
 
     fig, ax = plt.subplots()
+    fig.suptitle("temperatur and pressure over time")
 
     ax.grid(True)
     ax2 = ax.twinx()
@@ -45,11 +46,14 @@ def main_func():
     ax.xaxis.set_major_formatter(formatter)
 
     (l1,) = ax.plot(x, yt, "C1")
+    ax.set_ylabel("temperatur [°C]")
 
     (l2,) = ax2.plot(
         x,
         yp,
     )
+    ax2.set_ylabel("pressure [hPa]")
+
     ax2.legend([l1, l2], ["temperature", "pressure"])
 
     plt.show()
