@@ -91,8 +91,8 @@ def get_db_spec(db_path):
     return db_path
 
 
-def open_db(db_spec):
-    engine = create_engine(db_spec, echo=False)
+def open_db(db_spec, echo=False):
+    engine = create_engine(db_spec, echo=echo)
     return engine
 
 
@@ -213,57 +213,67 @@ def delete_all(engine, iter_id):
         delete_id(engine, id)
 
 
-db_path = get_db_path()
-print("db exists", os.path.exists(db_path))
-
-db_spec = get_db_spec(db_path)
-engine = open_db(db_spec)
-create_db_meta(engine)
-
-pat = os.path.join(DEFAULT_PATH_INQ, "**", "tempres-*.json")
-pat = os.path.expanduser(pat)
-pat = os.path.expandvars(pat)
-print("pattern", pat)
-
-# todo
-tag = " "
-
-tag = strip_tag(tag)
-
-skip_existing = 0
-inserted = 0
-
-for fe in glob.iglob(pat, recursive=True):
-    with open(fe) as f:
-        cont = f.read()
-        data = json.loads(cont)
-        if qry_count_date(engine, data, tag) > 0:
-            skip_existing = skip_existing + 1
-        else:
-            insert_rec(engine, data, tag=tag)
-            inserted = inserted + 1
-
-
-def dump_all():
+def dump_all(engine, tag=None, exclude_tag=False, full=False):
     found = 0
     recs = []
-    for dbrec in qry_all(engine, tag=tag, exclude_tag=False, full=False):
+    for dbrec in qry_all(engine, tag=tag, exclude_tag=exclude_tag, full=full):
         print(dbrec)
-        recs.append(dbrec[0])
+        if not full:
+            recs.append(dbrec[0])
+        else:
+            recs.append(dbrec)
         found = found + 1
     print("found", found)
 
 
-# delete_all(engine,recs)
+def configure_engine():
+    db_path = get_db_path()
+    print("db exists", os.path.exists(db_path))
 
-print("skip_existing", skip_existing)
-print("inserted", inserted)
-
-print("all tag", tag, qry_count_all(engine, tag=tag, exclude_tag=False))
-print("all", qry_count_all(engine, tag=tag, exclude_tag=True))
-
-# dialect+driver://username:password@host:port/database
+    db_spec = get_db_spec(db_path)
+    engine = open_db(db_spec)
+    create_db_meta(engine)
+    return engine
 
 
-def main_func():
-    pass
+# todo
+tag = " "
+
+
+def main_func(tag=None):
+
+    tag = strip_tag(tag)
+
+    engine = configure_engine()
+
+    pat = os.path.join(DEFAULT_PATH_INQ, "**", "tempres-*.json")
+    pat = os.path.expanduser(pat)
+    pat = os.path.expandvars(pat)
+    print("pattern", pat)
+
+    skip_existing = 0
+    inserted = 0
+
+    for fe in glob.iglob(pat, recursive=True):
+        with open(fe) as f:
+            cont = f.read()
+            data = json.loads(cont)
+            if qry_count_date(engine, data, tag) > 0:
+                skip_existing = skip_existing + 1
+            else:
+                insert_rec(engine, data, tag=tag)
+                inserted = inserted + 1
+
+    # delete_all(engine,recs)
+
+    print("skip_existing", skip_existing)
+    print("inserted", inserted)
+
+    print("all tag", tag, qry_count_all(engine, tag=tag, exclude_tag=False))
+    print("all", qry_count_all(engine, tag=tag, exclude_tag=True))
+
+    # dialect+driver://username:password@host:port/database
+
+
+if __name__ == "__main__":
+    main_func()

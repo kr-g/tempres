@@ -43,6 +43,8 @@ setuptools.setup(
     install_requires=[
         "pyjsoncfg",
         "SQLAlchemy",
+        "matplotlib",
+        "numpy",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
