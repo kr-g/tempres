@@ -29,7 +29,7 @@ following cmd-line tools are shipped within this package.
 
 ## tempres
 
-`tempres` loads one data package from a device and stores ot under `~/.tempres/inq` (default) as json.
+`tempres` loads one data package from a device and stores it under `~/.tempres/inq` (default) as json.
 
 use `tempres --help` to see all cmd-line options.
 
