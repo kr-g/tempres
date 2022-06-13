@@ -24,7 +24,7 @@ for open development tasks and limitations.
 
 todo: documentation pending
 
-following cmd-line tools are shipped within this package.
+following cmd-line tools are included in this package.
 
 
 ## tempres
