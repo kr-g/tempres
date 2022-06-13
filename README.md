@@ -22,7 +22,30 @@ for open development tasks and limitations.
 
 # how to use
 
-todo - documentation pending
+todo: documentation pending
+
+following cmd-line tools are shipped within this package.
+
+
+## tempres
+
+`tempres` loads one data package from a device and stores ot under `~/.tempres/inq` (default) as json.
+
+use `tempres --help` to see all cmd-line options.
+
+
+## tempresdb
+
+imports the data from `~/.tempres/inq` into a sqlite db `~/.tempresdb`.
+
+currently no further cmd-line options to configure the process (todo)
+
+
+## tempresplt
+
+plots the data "temperature and pressure data over time" from `~/.tempresdb` with mathplotlib.
+
+currently no further cmd-line options to configure the process (todo)
 
 
 # platform
