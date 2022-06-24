@@ -48,6 +48,41 @@ plots the data "temperature and pressure data over time" from `~/.tempresdb` wit
 currently no further cmd-line options to configure the process (todo)
 
 
+## temprespub
+
+interface to OpenWeatherMap.org
+
+### cmd line parameters
+
+todo documentation
+
+### configuration
+
+todo documentation
+
+file `~/tempres/stations.json` 
+
+    {
+      "api_key" : "your-api-key",
+      "stations" : [
+        { 
+          "station_id" : "your-id1",
+          "name" : "your-name",
+          "tag" : "a-tag",
+          "zip_code" : 12456, # dummy value
+          "country_code" : "de",
+        },
+        { 
+          "station_id" : "your-id2",
+          "name" : "your name 2",
+          "tag" : "a second tag",
+          "lat" : 1234, # dummy value
+          "lon" : 215265, # dummy value
+        }
+      ]
+    }
+
+
 # platform
 
 tested on python3, and linux

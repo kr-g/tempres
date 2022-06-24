@@ -41,7 +41,7 @@ setuptools.setup(
     license="MIT",
     keywords="micropython esp32 esp8266 modcore home-automation",
     install_requires=[
-        "pyjsoncfg",
+        "pyjsoncfg==0.0.6",
         "SQLAlchemy",
         "matplotlib",
         "numpy",
