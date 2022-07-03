@@ -82,6 +82,8 @@ file `~/tempres/stations.json`
       ]
     }
 
+remark: `station_id` is mapped to openweathermap `external_id` field
+
 
 # platform
 
