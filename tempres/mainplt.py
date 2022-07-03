@@ -13,7 +13,7 @@ from matplotlib.dates import MO, TU, WE, TH, FR, SA, SU
 import numpy as np
 
 
-def main_func():
+def main_func(rec_stdout=False):
 
     engine = configure_engine()
     # dump_all(engine,full=True)
@@ -21,8 +21,9 @@ def main_func():
     recs = list(qry_all(engine, full=True))
     recs = sorted(recs, key=lambda x: x.time_stamp)
 
-    for r in recs:
-        print(r)
+    if rec_stdout:
+        for r in recs:
+            print(r)
 
     # x = list(map(lambda x: x.time_stamp, recs))
 
@@ -45,13 +46,18 @@ def main_func():
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
 
-    (l1,) = ax.plot(x, yt, "C1")
+    sz = 5
+
+    rc1 = ax.scatter(x, yt, s=sz, c="C1")
+    # (l1,) = rc # for plot
     ax.set_ylabel("temperature [°C]")
 
-    (l2,) = ax2.plot(x, yp, "C0")
+    rc2 = ax2.scatter(x, yp, s=sz, c="C0")
+    # (l2,) = rc # for plot
     ax2.set_ylabel("pressure [hPa]")
 
-    ax2.legend([l1, l2], ["temperature", "pressure"])
+    ax2.legend([rc1, rc2], ["temperature", "pressure"])
+    # ax2.legend([l1, l2], ["temperature", "pressure"]) # for plot
 
     plt.show()
 
