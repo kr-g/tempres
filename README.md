@@ -50,7 +50,8 @@ currently no further cmd-line options to configure the process (todo)
 
 ## temprespub
 
-interface to OpenWeatherMap.org
+interface to OpenWeatherMap.org [api doc](https://openweathermap.org/stations#steps)
+
 
 ### cmd line parameters
 
