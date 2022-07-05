@@ -8,6 +8,7 @@ for open development tasks and limitations.
 ## next version v0.0.2 - ???
 
 - added mathplot support with cmd-line `tempresplt`
+- added openweathermap interface
 - 
 
 
