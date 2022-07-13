@@ -4,13 +4,11 @@ import time
 import json
 import argparse
 
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 
-from pyjsoncfg import Config
+from pyjsoncfg import Config  # , Namespace
 
-VERSION = "v0.0.0.1"
-
-DEFAULT_PATH = "~/.tempres/"
+from const import VERSION, DEFAULT_PATH
 
 CONFIG_FNAM = "stations.json"
 
@@ -48,15 +46,12 @@ def request_stations(api_key, station_id=None, is_ext_id=True):
     return jso
 
 
-def register_update_station(station_id, name, lat, lon, alt, api_key):
+def register_update_station(station_id, x_station_id, name, lat, lon, alt, api_key):
 
-    raise Exception("untested")
-
-    stations = request_stations(api_key, station_id, False)
-    update = len(stations) > 0
+    update = station_id is not None
 
     data = {
-        "external_id": station_id,
+        "external_id": x_station_id,
         "name": name,
         "latitude": lat,
         "longitude": lon,
@@ -64,24 +59,35 @@ def register_update_station(station_id, name, lat, lon, alt, api_key):
     if alt is not None:
         data.update({"altitude": alt})
 
-    id = stations[0]["id"] if len(stations) > 0 else None
+    id = station_id if update else None
 
-    data = json.dumps(data)
+    data = json.dumps(data).encode()
+
     url = build_station_url(api_key, id)
-    resp = urlopen(url, data=data, method="POST" if update is False else None)
-    if resp.status != 204:
+
+    meth = "PUT" if update else "POST"
+    print(meth, url)
+
+    req = Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method=meth,
+    )
+    resp = urlopen(req)
+    if not (resp.status >= 200 and resp.status < 300):
         raise Exception(f"failed to load {url} with error {resp.status}")
     return resp
 
 
 def delele_station(station_id, api_key):
+    print("delete", station_id)
 
-    raise Exception("untested")
-
-    stations = request_stations(api_key, station_id, False)
     url = build_station_url(api_key, station_id)
-    resp = urlopen(url, data=data, method="DELETE")
-    if resp.status != 200:
+    print("delete", url)
+    req = Request(url, method="DELETE")
+    resp = urlopen(req)
+    if not (resp.status >= 200 and resp.status < 300):
         raise Exception(f"failed to load {url} with error {resp.status}")
     return resp
 
@@ -90,7 +96,11 @@ def delele_station(station_id, api_key):
 
 
 def read_conf():
-    cfg = Config(filename=CONFIG_FNAM, basepath=DEFAULT_PATH)
+    cfg = Config(
+        filename=CONFIG_FNAM,
+        basepath=DEFAULT_PATH,
+    )
+    debug and print("config", cfg())
     return cfg
 
 
@@ -118,7 +128,126 @@ def build_lat_lon_url(lat, lon, api_key, exclude_part=None):
     return f"{BASE_URL}/data/{DATA_VER}/onecall?lat={lat}&lon={lon}{exclude_part}&units=metric&appid={api_key}"
 
 
+def get_station(args, registered, xkey="external_id"):
+    if args.station_id:
+        res = list(filter(lambda x: x[xkey] == args.station_id, registered))
+        if len(res) > 1:
+            # looks strange, but ... since ...
+            # external id is not checked to be unique during creation
+            print("WARNING", "double entry", args.station_id)
+            return res[0]
+        return res[0] if len(res) == 1 else None
+
+
+def remote_func(args):
+    registered = request_stations(args.api_key)
+    debug and print("stations", registered)
+
+    # xkey = "external_id" if args.x_station_id else "id"
+    station_id = get_station(args, registered, xkey="id") if args.station_id else None
+    station_def = (
+        get_station(args, registered, xkey="external_id") if args.station_id else None
+    )
+
+    station = station_def if station_def else station_id
+
+    if args.station_list:
+        res = registered
+        if args.station_id:
+            res = station
+        print("remote", json.dumps(res, indent=4))
+        return
+
+    elif args.register_xid:
+        myid = None
+        if station and "id" in station:
+            # read online
+            myid = station["id"]
+            print("found on openweathermap")
+
+        station_cfg = get_station(args, args.cfg.stations, xkey="station_id")
+
+        exid = station_cfg["station_id"]
+        if "lat" not in station_cfg:
+            lat, lon = request_zip_lat_lon(
+                station_cfg.zip_code, station_cfg.country_code, args.api_key
+            )
+        else:
+            lat = station_cfg["lat"]
+            lon = station_cfg["lon"]
+
+        name = station_cfg["name"]
+        alt = station_cfg["alt"] if "alt" in station_cfg else None
+
+        print("station", myid, "ref", exid, station)
+        resp = register_update_station(myid, exid, name, lat, lon, alt, args.api_key)
+        return resp.read().decode()
+
+    elif args.unregister_xid:
+        myid = None
+        exid = None
+        if station:
+            # read online
+            myid = station["id"] if "id" in station else None
+        if myid is None:
+            # read config
+            station = get_station(args, args.cfg.stations, xkey="station_id")
+            myid = station["id"] if "id" in station else None
+        delele_station(myid, args.api_key)
+
+
+#
+
+
+def local_func(args):
+    # registered = request_stations(args.api_key)
+    # debug and print("stations", registered)
+
+    if not args.x_station_id:
+        raise Exception("only local stations with station_id as external_id supported")
+
+    station_cfg = get_station(args, args.cfg.stations, xkey="station_id")
+
+    exid = station_cfg["station_id"]
+    if "lat" not in station_cfg:
+        lat, lon = request_zip_lat_lon(
+            station_cfg.zip_code, station_cfg.country_code, args.api_key
+        )
+    else:
+        lat = station_cfg["lat"]
+        lon = station_cfg["lon"]
+
+    url = build_lat_lon_url(lat, lon, args.api_key)
+    resp = urlopen(url)
+    if resp.status != 200:
+        raise Exception(f"failed to load {url} with error {resp.status}")
+
+    cont = resp.read()
+    jso = json.loads(cont)
+    debug and print(jso)
+
+    now = time.time()
+    tm = list(time.gmtime(now))
+    res = {
+        "time": tm[0:6],
+        "time_ux": now,
+        "utc": True,
+    }
+
+    if args.raw is False:
+        current = jso["current"]
+        res.update({"temperature": current["temp"], "pressure": current["pressure"]})
+    else:
+        res.update({"data": jso})
+
+    print(res)
+
+
+#
+
 debug = False
+
+#
 
 
 def main_func():
@@ -131,10 +260,7 @@ def main_func():
         description="interface to OpenWeatherMap",
     )
     parser.add_argument(
-        "--version",
-        "-v",
-        action="version",
-        version=f"%(prog)s {VERSION}",
+        "--version", "-v", action="version", version=f"%(prog)s {VERSION}"
     )
     parser.add_argument(
         "-debug",
@@ -155,118 +281,146 @@ def main_func():
         default=None,
     )
 
-    parser.add_argument(
+    #
+
+    subparsers = parser.add_subparsers(help="sub-command --help")
+
+    #
+
+    remote_parser = subparsers.add_parser("remote", help="remote --help")
+    remote_parser.set_defaults(func=remote_func)
+
+    remote_parser.add_argument(
+        "-register",
+        "-reg",
+        dest="register_xid",
+        action="store_true",
+        help="register station with station_id",
+        default=False,
+    )
+
+    remote_parser.add_argument(
+        "-unregister",
+        "-unreg",
+        "-del",
+        dest="unregister_xid",
+        action="store_true",
+        help="unregister station with station_id",
+        default=False,
+    )
+
+    remote_parser.add_argument(
+        "-list",
+        "-ls",
+        dest="station_list",
+        action="store_true",
+        help="list stations, or station with '-id'",
+        default=False,
+    )
+
+    remote_parser.add_argument(
         "-station",
         "-id",
         dest="station_id",
+        metavar="ID",
         action="store",
         type=str,
         help="name of station",
         default=None,
     )
 
-    parser.add_argument(
-        "-load",
-        "-get",
-        dest="load",
+    remote_parser.add_argument(
+        "-xstation",
+        "-xid",
+        dest="x_station_id",
         action="store_true",
-        help="load current data from station",
+        help="id is external id (default: %(default)s)",
         default=False,
     )
 
-    parser.add_argument(
+    remote_parser.add_argument(
         "-raw",
         dest="raw",
         action="store_true",
-        help="returns raw data  (default: %(default)s)",
+        help="returns raw data where possible (default: %(default)s)",
         default=False,
     )
 
-    list_group = parser.add_argument_group("list", "list options")
-    list_group.add_argument(
-        "-list-stations",
-        "-ls",
-        dest="station_list",
+    #
+
+    local_parser = subparsers.add_parser("local", help="local --help")
+    local_parser.set_defaults(func=local_func)
+
+    local_parser.add_argument(
+        "-load",
+        "-get",
+        dest="get_data",
         action="store_true",
-        help="list all stations, or station with '-id'",
+        help="load data from station with station_id",
         default=False,
     )
-    list_group.add_argument(
-        "-is-owm-id",
-        "-isid",
-        dest="station_no_ext_id",
+
+    local_parser.add_argument(
+        "-station",
+        "-id",
+        dest="station_id",
+        metavar="ID",
+        action="store",
+        type=str,
+        help="name of station",
+        default=None,
+    )
+
+    local_parser.add_argument(
+        "-xstation",
+        "-xid",
+        dest="x_station_id",
         action="store_true",
-        help="true if id is open weather map id, or station_id from config file (default: %(default)s)",
+        help="id is external id (default: %(default)s)",
         default=False,
     )
+
+    local_parser.add_argument(
+        "-raw",
+        dest="raw",
+        action="store_true",
+        help="returns raw data where possible (default: %(default)s)",
+        default=False,
+    )
+
+    #
 
     global args
     args = parser.parse_args()
 
+    debug = args.debug
+
     if args.debug:
         print("arguments", args)
 
-    debug = args.debug
+    cfg_ = read_conf()
+    cfg = cfg_()
+
+    api_key = args.api_key if args.api_key is not None else cfg.api_key
+    args.api_key = api_key
+    debug and print("api_key", api_key)
 
     cfg = read_conf()
     cfg_ = cfg()
 
-    api_key = args.api_key if args.api_key is not None else cfg_.api_key
-    debug and print("api_key", api_key)
+    args.cfg = cfg_
 
-    if args.station_list:
-        rc = request_stations(api_key, args.station_id, not args.station_no_ext_id)
-        print(rc)
-        return
+    if "func" in args:
+        debug and print("call func", args.func.__name__)
 
-    st = list(filter(lambda x: x.station_id == args.station_id, cfg_.stations))
-    debug and print(st)
+        rc = args.func(args)
+        debug and print(rc)
 
-    try:
-        if len(st) > 1:
-            raise Exception("duplicate station_id")
-        st = st[0]
-    except Exception as ex:
-        print(f"station {args.station_id} not found", ex)
-        sys.exit(1)
+        rc = rc if rc != None else 0
+        return rc
 
-    try:
-        lat, lon = st.lat, st.lon
-    except:
-        lat, lon = request_zip_lat_lon(st.zip_code, st.country_code, api_key)
 
-    debug and print(f"station lat: {lat}, lon: {lon}")
-
-    if args.load:
-
-        url = build_lat_lon_url(lat, lon, api_key)
-        resp = urlopen(url)
-        if resp.status != 200:
-            raise Exception(f"failed to load {url} with error {resp.status}")
-
-        cont = resp.read()
-        jso = json.loads(cont)
-        debug and print(jso)
-
-        now = time.time()
-        tm = list(time.gmtime(now))
-        res = {
-            "time": tm[0:6],
-            "time_ux": now,
-            "utc": True,
-        }
-
-        if args.raw is False:
-            current = jso["current"]
-            res.update(
-                {"temperature": current["temp"], "pressure": current["pressure"]}
-            )
-        else:
-            res.update({"data": jso})
-
-        print(res)
-
-    # todo add save with tag (same filename and folder structure as tempres.main)
+# todo add save with tag (same filename and folder structure as tempres.main)
 
 
 if __name__ == "__main__":
