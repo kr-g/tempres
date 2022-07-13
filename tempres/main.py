@@ -8,7 +8,7 @@ from datetime import time as dt_time
 
 from urllib import request
 
-from tempres import VERSION, DEFAULT_PATH
+from const import VERSION, DEFAULT_PATH
 
 debug = False
 

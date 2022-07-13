@@ -1,0 +1,4 @@
+pyjsoncfg==0.0.6
+SQLAlchemy
+matplotlib
+numpy

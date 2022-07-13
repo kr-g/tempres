@@ -15,8 +15,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy import delete
 
-DEFAULT_PATH = "~/.tempres/"
-DEFAULT_PATH_INQ = os.path.join(DEFAULT_PATH, "inq")
+from const import DEFAULT_PATH, DEFAULT_PATH_INQ
 
 
 def create_id():
@@ -30,7 +29,7 @@ Base = declarative_base()
 
 
 # todo add migration scripts
-VER = 2
+VER = 1
 
 
 class TempRec(Base):
