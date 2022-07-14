@@ -1,4 +1,5 @@
-import datetime as dt
+from datetime import datetime as DateTime
+from datetime import timedelta as TimeDelta
 
 try:
     from maindb import configure_engine, qry_all
@@ -13,12 +14,21 @@ from matplotlib.dates import MO, TU, WE, TH, FR, SA, SU
 import numpy as np
 
 
-def main_func(rec_stdout=False):
+def main_func(rec_stdout=False, day_range=14):
 
     engine = configure_engine()
     # dump_all(engine,full=True)
 
-    recs = list(qry_all(engine, full=True))
+    now = DateTime.now()
+    delta = TimeDelta(days=day_range)
+    from_date = now - delta
+
+    print("from_date", from_date, "until", now)
+
+    from_date = from_date.timestamp()
+    now = now.timestamp()
+
+    recs = list(qry_all(engine, full=True, from_date=from_date))
     recs = sorted(recs, key=lambda x: x.time_stamp)
 
     if rec_stdout:
@@ -27,7 +37,7 @@ def main_func(rec_stdout=False):
 
     # x = list(map(lambda x: x.time_stamp, recs))
 
-    x = np.array(list(map(lambda x: dt.datetime.fromtimestamp(x.time_stamp), recs)))
+    x = np.array(list(map(lambda x: DateTime.fromtimestamp(x.time_stamp), recs)))
 
     yt = list(map(lambda y: y.temperature, recs))
     yp = list(map(lambda y: y.pressure, recs))

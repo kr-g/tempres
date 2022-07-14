@@ -167,6 +167,9 @@ def insert_rec(engine, data, tag=None):
         session.commit()
 
 
+#
+
+
 def get_date(data):
     year = data["time"][0]
     month = data["time"][1]
@@ -203,27 +206,64 @@ def qry_date(engine, data, tag=None, exclude_tag=False, full=False):
         return qry.all()
 
 
-def qry_all(engine, tag=None, exclude_tag=False, full=False):
+def qry_count_date(engine, date, tag=None, exclude_tag=False):
+    with Session(engine) as session:
+        qry = build_date_qry(session, date, tag, exclude_tag, False)
+        return qry.count()
+
+
+#
+
+
+def filter_tag_date(
+    qry, tag=None, exclude_tag=False, full=False, from_date=None, to_date=None
+):
+    if tag:
+        tag = strip_tag(tag)
+        if len(tag) == 0:
+            tag = None
+    if not exclude_tag:
+        qry = qry.where(TempRec.tag.is_(tag))
+    if from_date:
+        qry = qry.where(TempRec.time_stamp >= from_date)
+    if to_date:
+        qry = qry.where(TempRec.time_stamp <= to_date)
+    return qry
+
+
+def qry_all(
+    engine, tag=None, exclude_tag=False, full=False, from_date=None, to_date=None
+):
     with Session(engine) as session:
         qry = session.query(TempRec) if full else session.query(TempRec.id)
-        if not exclude_tag:
-            qry = qry.where(TempRec.tag.is_(tag))
+        qry = filter_tag_date(
+            qry,
+            tag=tag,
+            exclude_tag=exclude_tag,
+            full=full,
+            from_date=from_date,
+            to_date=to_date,
+        )
         return qry.all()
 
 
-def qry_count_date(engine, data, tag=None, exclude_tag=False):
-    with Session(engine) as session:
-        qry = build_date_qry(session, data, tag, exclude_tag, False)
-        return qry.count()
-
-
-def qry_count_all(engine, tag=None, exclude_tag=False):
-    tag = strip_tag(tag)
+def qry_count_all(
+    engine, tag=None, exclude_tag=False, full=False, from_date=None, to_date=None
+):
     with Session(engine) as session:
         qry = session.query(TempRec.id)
-        if not exclude_tag:
-            qry = qry.where(TempRec.tag.is_(tag))
+        qry = filter_tag_date(
+            qry,
+            tag=tag,
+            exclude_tag=exclude_tag,
+            full=full,
+            from_date=from_date,
+            to_date=to_date,
+        )
         return qry.count()
+
+
+#
 
 
 def delete_id(engine, id):
@@ -235,6 +275,9 @@ def delete_id(engine, id):
 def delete_all(engine, iter_id):
     for id in iter_id:
         delete_id(engine, id)
+
+
+#
 
 
 def dump_all(engine, tag=None, exclude_tag=False, full=False):
